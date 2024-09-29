@@ -3,94 +3,257 @@
 <head>
     <title>Chatbot Test</title>
     <style>
-        #chatbox {
-            width: 80%;
-            height: 500px;
+        /* Chat Button */
+        #chat-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        /* Chat Window */
+        #chat-window {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 300px;
+            max-height: 400px;
+            background-color: white;
             border: 1px solid #ccc;
-            overflow-y: scroll;
-            margin: 0 auto;
+            border-radius: 10px;
+            display: none; /* Hidden by default */
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        /* Chat Header */
+        #chat-header {
+            background-color: #007bff;
+            color: white;
             padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        #user-input {
-            width: 70%;
-            margin-left: 10%;
+
+        /* Close Button */
+        #close-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
         }
+
+        /* Chat Body */
+        #chat-body {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: #f1f1f1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat Footer */
+        #chat-footer {
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            display: flex;
+        }
+
+        /* Chat Input */
+        #chat-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* Send Button */
         #send-button {
-            width: 10%;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin-left: 5px;
+            border-radius: 5px;
+            cursor: pointer;
         }
+
+        /* Message Bubbles */
         .message {
-            margin: 5px 0;
+            margin-bottom: 10px;
+            clear: both;
         }
-        .user {
+
+        .user-message {
             text-align: right;
-            color: blue;
         }
-        .bot {
+
+        .bot-message {
             text-align: left;
-            color: green;
+        }
+
+        .message p {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .user-message p {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .bot-message p {
+            background-color: #e5e5ea;
+            color: black;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            #chat-window {
+                width: 90%;
+                right: 5%;
+                bottom: 80px;
+            }
+
+            #chat-button {
+                right: 5%;
+                bottom: 20px;
+            }
+
+            #chat-header, #chat-footer {
+                padding: 8px;
+            }
+
+            #chat-input {
+                padding: 6px;
+            }
+
+            #send-button {
+                padding: 6px 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Chatbot Test</h1>
-    <div id="chatbox"></div>
-    <div style="text-align: center;">
-        <input type="text" id="user-input" placeholder="Type your message here...">
-        <button id="send-button">Send</button>
-    </div>
-    <script>
-        const chatbox = document.getElementById('chatbox');
-        const userInput = document.getElementById('user-input');
-        const sendButton = document.getElementById('send-button');
+    <!-- Your existing page content -->
+    <!-- Add any other content you want on your page here -->
 
-        sendButton.addEventListener('click', sendMessage);
-        userInput.addEventListener('keydown', function(event) {
-            if (event.keyCode === 13) {
-                sendMessage();
-            }
+    <!-- Chat Button -->
+    <button id="chat-button">💬</button>
+
+    <!-- Chat Window -->
+    <div id="chat-window">
+        <div id="chat-header">
+            <span>Chatbot</span>
+            <button id="close-button">&times;</button>
+        </div>
+        <div id="chat-body">
+            <!-- Messages will appear here -->
+        </div>
+        <div id="chat-footer">
+            <input type="text" id="chat-input" placeholder="Type your message...">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Get elements
+        const chatButton = document.getElementById('chat-button');
+        const chatWindow = document.getElementById('chat-window');
+        const closeButton = document.getElementById('close-button');
+        const sendButton = document.getElementById('send-button');
+        const chatInput = document.getElementById('chat-input');
+        const chatBody = document.getElementById('chat-body');
+
+        // Toggle chat window
+        chatButton.addEventListener('click', () => {
+            chatWindow.style.display = 'flex';
+            chatWindow.style.flexDirection = 'column';
+            chatInput.focus();
         });
 
+        closeButton.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+        });
+
+        // Function to append messages
+        function appendMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            if (sender === 'user') {
+                messageDiv.classList.add('user-message');
+            } else {
+                messageDiv.classList.add('bot-message');
+            }
+
+            const messageContent = document.createElement('p');
+            messageContent.textContent = message;
+
+            messageDiv.appendChild(messageContent);
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        // Send message function
         function sendMessage() {
-            const message = userInput.value;
-            if (message.trim() === '') return;
+            const message = chatInput.value.trim();
+            if (message === '') return;
 
-            // Display user message
-            const userMessage = document.createElement('div');
-            userMessage.classList.add('message', 'user');
-            userMessage.textContent = 'You: ' + message;
-            chatbox.appendChild(userMessage);
-
-            // Clear input
-            userInput.value = '';
+            appendMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.disabled = true;
+            sendButton.disabled = true;
 
             // Send message to server
             fetch('/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message})
+                body: JSON.stringify({ message: message }),
             })
             .then(response => response.json())
             .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
+                if (data.response) {
+                    appendMessage(data.response, 'bot');
+                } else if (data.error) {
+                    appendMessage("Error: " + data.error, 'bot');
                 }
-                // Display bot response
-                const botMessage = document.createElement('div');
-                botMessage.classList.add('message', 'bot');
-                botMessage.textContent = 'Bot: ' + data.response;
-                chatbox.appendChild(botMessage);
-
-                // Scroll to bottom
-                chatbox.scrollTop = chatbox.scrollHeight;
+                chatInput.disabled = false;
+                sendButton.disabled = false;
+                chatInput.focus();
             })
-            .catch(error => {
-                console.error('Error:', error);
-                const errorMessage = document.createElement('div');
-                errorMessage.classList.add('message', 'bot');
-                errorMessage.textContent = 'Error: ' + error.message;
-                chatbox.appendChild(errorMessage);
+            .catch((error) => {
+                appendMessage("Error: " + error.message, 'bot');
+                chatInput.disabled = false;
+                sendButton.disabled = false;
+                chatInput.focus();
             });
         }
+
+        // Send message on button click
+        sendButton.addEventListener('click', sendMessage);
+
+        // Send message on Enter key
+        chatInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
     </script>
 </body>
 </html>
