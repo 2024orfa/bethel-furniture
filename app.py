@@ -1,16 +1,19 @@
 from flask import Flask, request, jsonify, render_template
 import os
 from dotenv import load_dotenv
-
-from langchain.vectorstores.pinecone import Pinecone
+from openai import OpenAI
+from langchain_community.vectorstores import Pinecone
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import ChatPromptTemplate
-from langchain.embeddings import HuggingFaceEmbeddings
 from pinecone import Pinecone as PineconeClient
+from langchain_community.embeddings import OpenAIEmbeddings
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app)
 
 # Load environment variables
 load_dotenv()
@@ -21,8 +24,9 @@ pinecone_environment = os.getenv("PINECONE_ENVIRONMENT")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize embeddings
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+#embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
+embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
 # Initialize Pinecone client and connect to index
 client = PineconeClient(api_key=pinecone_api_key, environment=pinecone_environment)
 index = client.Index(pinecone_index_name)
@@ -79,3 +83,4 @@ def chat():
 
 if __name__ == '__main__':
     app.run()
+
