@@ -8,7 +8,8 @@ from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import ChatPromptTemplate
 from pinecone import Pinecone as PineconeClient
-from langchain_community.embeddings import OpenAIEmbeddings
+#from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from flask_cors import CORS
 
 
@@ -52,7 +53,7 @@ Answer:"""
 prompt = ChatPromptTemplate.from_template(template)
 
 # Initialize the OpenAI model
-model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-3.5-turbo")
+model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4o-mini-2024-07-18")
 
 # Create the chain
 chain = (

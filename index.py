@@ -1,20 +1,21 @@
 import os
 from dotenv import load_dotenv
 import openai
+from openai import OpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pinecone import Pinecone as PineconeClient, ServerlessSpec
+import time  # For optional delay to simulate more visible progress
 
 # Load environment variables
 load_dotenv()
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=openai_api_key)
 
 # Retrieve environment variables
 pinecone_index_name = os.getenv("PINECONE_INDEX_NAME")
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
 pinecone_environment = os.getenv("PINECONE_ENVIRONMENT")
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
-# Set OpenAI API key
-openai.api_key = openai_api_key
 
 # Read the extracted content from the text file
 file_path = "extracted_content.txt"
@@ -31,17 +32,19 @@ chunks = text_splitter.split_text(text_content)
 # Function to get OpenAI embeddings
 def get_openai_embeddings(text_list):
     embeddings = []
-    # OpenAI allows up to 2048 tokens per request; adjust batch size accordingly
-    batch_size = 100  # Adjust based on your needs and rate limits
+    batch_size = 5  # Define the batch size based on your needs
     for i in range(0, len(text_list), batch_size):
         batch = text_list[i:i + batch_size]
         try:
-            response = openai.Embedding.create(
+            # Ensure correct usage of OpenAI client
+            response = client.embeddings.create(
                 input=batch,
-                model="text-embedding-ada-002"  # You can choose other models if preferred
+                model="text-embedding-3-small"
             )
-            batch_embeddings = [item['embedding'] for item in response['data']]
+            # Assuming response.data is a list of embeddings
+            batch_embeddings = [item.embedding for item in response.data]  # Use dot notation
             embeddings.extend(batch_embeddings)
+            print(f"Processed batch {i // batch_size + 1} of {len(text_list) // batch_size + 1}")
         except openai.error.OpenAIError as e:
             print(f"OpenAI API error for batch starting at index {i}: {e}")
             # Optionally implement retry logic here
@@ -87,12 +90,14 @@ def batch_documents(documents, batch_size):
 batch_size = 100  # Adjust based on Pinecone's upsert limits
 
 # Upsert the documents to Pinecone in batches
-for batch in batch_documents(docs, batch_size):
+for i, batch in enumerate(batch_documents(docs, batch_size), start=1):
     try:
         index.upsert(vectors=batch)
+        print(f"Successfully upserted batch {i} of {len(docs) // batch_size + 1}")
+        # Optional: Add delay to simulate more visible progress (remove in production)
+        time.sleep(0.5)
     except Exception as e:
-        print(f"Error during upsert operation for batch: {e}")
+        print(f"Error during upsert operation for batch {i}: {e}")
         # Optionally implement retry logic here
 
 print(f"Successfully indexed {len(docs)} chunks into Pinecone")
-
