@@ -24,7 +24,7 @@ with open(file_path, "r", encoding="utf-8") as file:
     text_content = file.read()
 
 # Initialize the RecursiveCharacterTextSplitter
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=10)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=150)
 
 # Split the text into chunks
 chunks = text_splitter.split_text(text_content)
