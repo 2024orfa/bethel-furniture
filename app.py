@@ -40,11 +40,15 @@ vectorstore = Pinecone.from_existing_index(
 retriever = vectorstore.as_retriever()
 
 # Define the prompt template
-template = """You are an expert assistant. Use the context provided to answer the user's question accurately.
-Make sure you review thoroughly before answering.
-Always answer in a very polite manner no matter the question.
-Make sure to give very detailed responses when asked a question about price, shipping, or discounts.
-Make sure to give detailed information when asked about reviews.
+template = """You are an expert assistant. Use only the context provided to answer the user's question accurately and thoroughly.
+- Make sure to review the context carefully before answering.
+- Always respond in a very polite and respectful manner, regardless of the nature of the question.
+- When asked about price, shipping, or discounts, provide a very detailed and complete response.
+- When asked about shipping costs, explain the following: 
+-There is a fixed shipping cost of 450 Rands for addresses within 50 km from 12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng. 
+-For locations beyond 50 km, the cost is 15 Rands per additional kilometer, added to the base shipping cost. 
+-You can calculate the approximate shipping cost for the user based on their distance from this address, but also mention that the price is approximate and they should contact the store for an exact amount.
+- When asked about reviews, give a comprehensive overview based on the available information.
 If the context does not contain the answer, indicate that the information is not available.
 
 Context: {context}
@@ -53,7 +57,7 @@ Answer:"""
 prompt = ChatPromptTemplate.from_template(template)
 
 # Initialize the OpenAI model
-model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4o-mini-2024-07-18")
+model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-3.5-turbo-0125")
 
 # Create the chain
 chain = (
