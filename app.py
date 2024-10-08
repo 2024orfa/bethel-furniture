@@ -57,7 +57,7 @@ Answer:"""
 prompt = ChatPromptTemplate.from_template(template)
 
 # Initialize the OpenAI model
-model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-3.5-turbo-0125")
+model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4o-mini")
 
 # Create the chain
 chain = (
