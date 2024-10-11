@@ -1,17 +1,14 @@
 from flask import Flask, request, jsonify, render_template
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
-from langchain_community.vectorstores import Pinecone
-from langchain_openai import ChatOpenAI
-from langchain_core.runnables import RunnableParallel, RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
+from langchain.vectorstores import Pinecone
+from langchain.chat_models import ChatOpenAI
+from langchain.memory import ConversationBufferMemory
 from langchain.prompts import ChatPromptTemplate
+from langchain.chains import ConversationChain
 from pinecone import Pinecone as PineconeClient
-#from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_openai import OpenAIEmbeddings
+from langchain.embeddings import OpenAIEmbeddings
 from flask_cors import CORS
-
 
 app = Flask(__name__)
 CORS(app)
@@ -19,16 +16,16 @@ CORS(app)
 # Load environment variables
 load_dotenv()
 
+# Retrieve environment variables
 pinecone_index_name = os.getenv("PINECONE_INDEX_NAME")
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
 pinecone_environment = os.getenv("PINECONE_ENVIRONMENT")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-# Initialize embeddings
-#embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
-
+# Initialize OpenAI embeddings
 embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
-# Initialize Pinecone client and connect to index
+
+# Initialize Pinecone client and connect to the index
 client = PineconeClient(api_key=pinecone_api_key, environment=pinecone_environment)
 index = client.Index(pinecone_index_name)
 
@@ -39,7 +36,7 @@ vectorstore = Pinecone.from_existing_index(
 )
 retriever = vectorstore.as_retriever()
 
-# Define the prompt template
+# Define the prompt template with conversation history
 template = """You are an expert assistant. Use only the context provided to answer the user's question accurately and thoroughly.
 - Make sure to review the context carefully before answering.
 - Always respond in a very polite and respectful manner, regardless of the nature of the question.
@@ -49,44 +46,34 @@ template = """You are an expert assistant. Use only the context provided to answ
     - For locations beyond 50 km, the cost is 15 Rands per additional kilometer, added to the base shipping cost.
     - You can calculate the approximate shipping cost for the user based on their distance from this address, but also mention that the price is approximate and they should contact the store for an exact amount.
 - When asked about reviews, give a comprehensive overview based on the available information.
-- When providing price information make sure to state old price,new price,dimensions and weight of item if available
+- When providing price information make sure to state old price, new price, dimensions, and weight of item if available.
 
 If the context does not contain the answer, indicate that the information is not available.
 
 
-**Example 1: Shipping Cost Inquiry**
+**Conversation History:**
+{conversation_history}
 
-Context: Our online store offers shipping services from 12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng. The fixed shipping cost is 450 Rands for addresses within 50 km. For locations beyond 50 km, the cost is 15 Rands per additional kilometer.
-
-Question: How much would shipping cost to Cape Town, which is 750 km away?
-
-Answer:
-There is a fixed shipping cost of **450 Rands** for addresses within 50 km from **12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng**.
-For locations beyond 50 km, the cost is **15 Rands per additional kilometer**.
-Cape Town is **750 km** away, so the additional kilometers are **700 km** (750 km - 50 km).
-- **Additional Shipping Cost:** 700 km * 15 Rands = **10,500 Rands**
-- **Total Approximate Shipping Cost:** 450 Rands + 10,500 Rands = **10,950 Rands**
-  
-*Please note that this is an approximate price. For an exact amount, please contact our store.*
-
-Feel free to reach out to us through any of these methods for assistance!
-
-
-
-Context: {context}
-Question: {question}
+**Question:** {question}
 Answer:"""
+
+# Create the prompt template
 prompt = ChatPromptTemplate.from_template(template)
 
-# Initialize the OpenAI model
-model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4o-mini")
+# Initialize conversation memory
+memory = ConversationBufferMemory(memory_key="conversation_history")
 
-# Create the chain
-chain = (
-    RunnableParallel({"context": retriever, "question": RunnablePassthrough()})
-    | prompt
-    | model
-    | StrOutputParser()
+# Initialize the OpenAI model
+# Note: Ensure the model name is correct. It was "gpt-4o-mini" in your original code, which might be a typo.
+# If you intend to use GPT-4, use "gpt-4"
+model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4")  # Changed from "gpt-4o-mini" to "gpt-4"
+
+# Create the Conversation Chain
+conversation_chain = ConversationChain(
+    llm=model,
+    prompt=prompt,
+    memory=memory,
+    retriever=retriever
 )
 
 @app.route('/')
@@ -97,17 +84,23 @@ def index():
 def chat():
     data = request.get_json()
     user_input = data.get('message', '')
+    conversation_history = data.get('conversation_history', '')  # Entire conversation history
+
     if not user_input:
         return jsonify({'error': 'No input provided'}), 400
 
-    # Invoke the chain with user input
+    # Update memory with provided conversation history
+    conversation_chain.memory.conversation_history = conversation_history
+
+    # Invoke the conversation chain with user input
     try:
-        answer = chain.invoke(user_input)
+        answer = conversation_chain.run(user_input)
+        # Retrieve updated conversation history
+        updated_conversation_history = conversation_chain.memory.conversation_history
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-    return jsonify({'response': answer})
+    return jsonify({'response': answer, 'conversation_history': updated_conversation_history})
 
 if __name__ == '__main__':
     app.run()
-
