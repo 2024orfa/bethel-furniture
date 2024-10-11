@@ -35,6 +35,8 @@
             z-index: 1000;
             flex-direction: column;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Chat Header */
@@ -97,6 +99,17 @@
             cursor: pointer;
         }
 
+        /* Loading Indicator */
+        #loading-indicator {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: #555;
+        }
+
         /* Message Bubbles */
         .message {
             margin-bottom: 10px;
@@ -116,6 +129,7 @@
             padding: 10px;
             border-radius: 10px;
             max-width: 80%;
+            word-wrap: break-word;
         }
 
         .user-message p {
@@ -163,7 +177,7 @@
     <!-- Chat Window -->
     <div id="chat-window">
         <div id="chat-header">
-            <span>Bethel Furniture AI Assitant</span>
+            <span>Bethel Furniture AI Assistant</span>
             <button id="close-button">&times;</button>
         </div>
         <div id="chat-body">
@@ -173,9 +187,14 @@
             <input type="text" id="chat-input" placeholder="Type your message...">
             <button id="send-button">Send</button>
         </div>
+        <!-- Loading Indicator -->
+        <div id="loading-indicator">Loading...</div>
     </div>
 
     <script>
+        // Initialize conversation history
+        let conversationHistory = "";
+
         // Get elements
         const chatButton = document.getElementById('chat-button');
         const chatWindow = document.getElementById('chat-window');
@@ -183,8 +202,9 @@
         const sendButton = document.getElementById('send-button');
         const chatInput = document.getElementById('chat-input');
         const chatBody = document.getElementById('chat-body');
+        const loadingIndicator = document.getElementById('loading-indicator');
 
-        // Toggle chat window
+        // Toggle chat window visibility
         chatButton.addEventListener('click', () => {
             chatWindow.style.display = 'flex';
             chatInput.focus();
@@ -194,7 +214,7 @@
             chatWindow.style.display = 'none';
         });
 
-        // Function to append messages
+        // Function to append messages to the chat body
         function appendMessage(message, sender) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
@@ -212,45 +232,61 @@
             chatBody.scrollTop = chatBody.scrollHeight;
         }
 
-        // Send message function
-        function sendMessage() {
+        // Function to send message to the server
+        async function sendMessage() {
             const message = chatInput.value.trim();
-            if (message === '') return;
+            if (message === '') return; // Do nothing if input is empty
 
+            // Append user message to chat
             appendMessage(message, 'user');
+
+            // Clear input and disable input fields
             chatInput.value = '';
             chatInput.disabled = true;
             sendButton.disabled = true;
 
-            // Send message to server
-            fetch('/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ message: message }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.response) {
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        conversation_history: conversationHistory
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    appendMessage(`Error: ${data.error}`, 'bot');
+                } else {
+                    // Update conversation history
+                    conversationHistory = data.conversation_history;
+
+                    // Append bot response to chat
                     appendMessage(data.response, 'bot');
-                } else if (data.error) {
-                    appendMessage("Error: " + data.error, 'bot');
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('Sorry, something went wrong.', 'bot');
+            } finally {
+                // Re-enable input fields and hide loading indicator
                 chatInput.disabled = false;
                 sendButton.disabled = false;
+                loadingIndicator.style.display = 'none';
                 chatInput.focus();
-            })
-            .catch((error) => {
-                appendMessage("Error: " + error.message, 'bot');
-                chatInput.disabled = false;
-                sendButton.disabled = false;
-                chatInput.focus();
-            });
+            }
         }
 
         // Send message on button click
         sendButton.addEventListener('click', sendMessage);
 
-        // Send message on Enter key
+        // Send message on Enter key press
         chatInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
