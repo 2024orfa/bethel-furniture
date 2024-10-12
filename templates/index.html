@@ -192,7 +192,7 @@
     </div>
 
     <script>
-        // Initialize conversation history
+        // Initialize conversation history as a string
         let conversationHistory = "";
 
         // Get elements
@@ -240,6 +240,9 @@
             // Append user message to chat
             appendMessage(message, 'user');
 
+            // Add user message to conversation history
+            conversationHistory += `User: ${message}\n`;
+
             // Clear input and disable input fields
             chatInput.value = '';
             chatInput.disabled = true;
@@ -265,11 +268,12 @@
                 if (data.error) {
                     appendMessage(`Error: ${data.error}`, 'bot');
                 } else {
-                    // Update conversation history
-                    conversationHistory = data.conversation_history;
+                    // Update conversation history with assistant response
+                    const botMessage = data.response;
+                    conversationHistory += `Assistant: ${botMessage}\n`;
 
                     // Append bot response to chat
-                    appendMessage(data.response, 'bot');
+                    appendMessage(botMessage, 'bot');
                 }
             } catch (error) {
                 console.error('Error:', error);
