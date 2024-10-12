@@ -39,7 +39,7 @@ def get_openai_embeddings(text_list):
             # Ensure correct usage of OpenAI client
             response = client.embeddings.create(
                 input=batch,
-                model="text-embedding-3-small"
+                model="text-embedding-ada-002"
             )
             # Assuming response.data is a list of embeddings
             batch_embeddings = [item.embedding for item in response.data]  # Use dot notation
