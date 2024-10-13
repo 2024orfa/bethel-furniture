@@ -225,7 +225,8 @@
             }
 
             const messageContent = document.createElement('p');
-            messageContent.textContent = message;
+            // Allow HTML content to be rendered
+            messageContent.innerHTML = message;
 
             messageDiv.appendChild(messageContent);
             chatBody.appendChild(messageDiv);

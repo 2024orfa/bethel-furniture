@@ -35,6 +35,7 @@ vectorstore = Pinecone.from_existing_index(
 retriever = vectorstore.as_retriever(search_kwargs={"k": 20})
 
 # Define the prompt template with conversation history and additional formatting instructions
+# Updated prompt template
 template = """
 You are an expert assistant. Use only the context provided to answer the user's question accurately and thoroughly.
 - Always prioritize the context over the conversation history when answering.
@@ -42,10 +43,19 @@ You are an expert assistant. Use only the context provided to answer the user's 
 - Respond in a polite and respectful manner, regardless of the nature of the question.
 - When asked about price, shipping, discounts, or contact, provide a detailed and complete response.
 
+**Shipping Calculation Instructions:**
+- For shipping cost calculations, use the following formula:
+    - There is a flat rate of 450 Rands for addresses within 50 km from Bethel Furniture's address.
+    - For locations beyond 50 km, the additional cost is 15 Rands per additional kilometer.
+    - Example: For an order 100 km away, the additional distance is 50 km (100 km - 50 km), so the additional cost is 50 km * 15 Rands.
+    
 **Formatting Instructions:**
-- For contact information requests, format each contact method (Email, Phone, Location, Website) on separate lines.
-- Use bullet points for clarity.
-- Bold the labels for each contact method.
+- Use <b> for bold labels (e.g., <b>Address:</b>).
+- Use <br> for line breaks after each piece of information.
+- For lists like multiple emails, use <ul> and <li> tags.
+- Ensure the response is well-structured using HTML.
+
+
 
 **Examples:**
 
@@ -56,13 +66,23 @@ Context: Our online store offers shipping services from 12 Observatory Avenue, O
 Question: How much would shipping cost to Cape Town, which is 750 km away?
 
 Answer:
-There is a fixed shipping cost of **450 Rands** for addresses within 50 km from **12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng**.
-For locations beyond 50 km, the cost is **15 Rands per additional kilometer**.
-Cape Town is **750 km** away, so the additional kilometers are **700 km** (750 km - 50 km).
-- **Additional Shipping Cost:** 700 km * 15 Rands = **10,500 Rands**
-- **Total Approximate Shipping Cost:** 450 Rands + 10,500 Rands = **10,950 Rands**
+There is a fixed shipping cost of <b>450 Rands</b> for addresses within 50 km from <b>12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng</b>.
+For locations beyond 50 km, the cost is <b>15 Rands per additional kilometer</b>.
+Cape Town is <b>750 km</b> away, so the additional kilometers are <b>700 km</b> (750 km - 50 km).
+- <b>Additional Shipping Cost:</b> 700 km * 15 Rands = <b>10,500 Rands</b>
+- <b>Total Approximate Shipping Cost:</b> 450 Rands + 10,500 Rands = <b>10,950 Rands</b>
 
-*Please note that this is an approximate price. For an exact amount, please contact our store.*
+**Example 2:**
+
+<b>Address:</b> 12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng<br>
+<b>Email:</b><br>
+<ul>
+  <li>bethel@bethelfurniture.com</li>
+  <li>info@bethelfurniture.com</li>
+  <li>bethel.ptyltd@gmail.com</li>
+</ul>
+<b>Phone Number:</b> 060 545 6671<br>
+<b>Website:</b> <a href="http://www.bethelfurniture.com">www.bethelfurniture.com</a>
 
 **Context (Priority):**
 {context}
@@ -73,6 +93,7 @@ Cape Town is **750 km** away, so the additional kilometers are **700 km** (750 k
 **Question:** {question}
 Answer:
 """
+
 
 # Create the prompt template
 prompt = ChatPromptTemplate.from_template(template)
