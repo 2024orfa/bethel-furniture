@@ -5,7 +5,7 @@ from openai import OpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pinecone import Pinecone as PineconeClient, ServerlessSpec
 import time  # For optional delay to simulate more visible progress
-
+import docx 
 # Load environment variables
 load_dotenv()
 
@@ -17,17 +17,32 @@ pinecone_index_name = os.getenv("PINECONE_INDEX_NAME")
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
 pinecone_environment = os.getenv("PINECONE_ENVIRONMENT")
 
-# Read the extracted content from the text file
-file_path = "extracted_content.txt"
+# Function to extract text from .docx file
+def extract_text_from_docx(docx_file_path):
+    doc = docx.Document(docx_file_path)
+    full_text = []
+    for para in doc.paragraphs:
+        full_text.append(para.text)
+    return '\n'.join(full_text)
 
+# Read the extracted content from the text file (existing code)
+file_path = "extracted_content.txt"
 with open(file_path, "r", encoding="utf-8") as file:
     text_content = file.read()
+
+# Read and process the .docx file
+docx_file_path = "Bethel Furniture FAQ.docx"  # Replace with the actual path to your .docx file
+docx_text_content = extract_text_from_docx(docx_file_path)
+
+# Combine the content of both files
+combined_text_content = text_content + "\n" + docx_text_content  # Combine .txt and .docx content
+
 
 # Initialize the RecursiveCharacterTextSplitter
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=150)
 
 # Split the text into chunks
-chunks = text_splitter.split_text(text_content)
+chunks = text_splitter.split_text(combined_text_content)
 
 # Function to get OpenAI embeddings
 def get_openai_embeddings(text_list):
