@@ -1,8 +1,10 @@
 # Ignore virtual environment
-my_env/
+.venv/
+env
 
 # Ignore data files
 *.txt
+*.xls
 
 # Ignore Python bytecode files
 __pycache__/
