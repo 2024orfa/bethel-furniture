@@ -4,7 +4,7 @@ import openai
 from openai import OpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pinecone import Pinecone as PineconeClient, ServerlessSpec
-import time  # For optional delay to simulate more visible progress
+import time  
 import docx 
 # Load environment variables
 load_dotenv()
