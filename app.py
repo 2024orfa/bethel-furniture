@@ -42,42 +42,40 @@ You are an expert assistant. Use only the context provided to answer the user's 
 - Make sure to review the context carefully before answering.
 - Respond in a polite and respectful manner, regardless of the nature of the question.
 - When asked about price, shipping, discounts, or contact, provide a detailed and complete response.
-- Always use **HTML formatting** for the response (do not use Markdown or asterisks).
+- Always use HTML formatting for the response (do not use Markdown, code blocks, backticks, or asterisks).
 - Use <b> for bold labels (e.g., <b>Address:</b>).
 - Use <br> for line breaks after each piece of information.
 - For lists, use <ul> and <li> tags.
-- Ensure the response is well-structured using HTML and never use asterisks (**).
+- Ensure the response is well-structured using HTML and do not include any code blocks or backticks.
 
 **Shipping Calculation Instructions:**
 - For shipping cost calculations, use the following formula:
     - There is a flat rate of 450 Rands for addresses within 50 km from Bethel Furniture's address.
     - For locations beyond 50 km, the additional cost is 15 Rands per additional kilometer.
     - Example: For an order 100 km away, the additional distance is 50 km (100 km - 50 km), so the additional cost is 50 km * 15 Rands.
-    
+
 **Formatting Instructions:**
 - Use <b> for bold labels (e.g., <b>Address:</b>).
 - Use <br> for line breaks after each piece of information.
 - For lists like multiple emails, use <ul> and <li> tags.
-- Ensure the response is well-structured using HTML.
-
-
+- Ensure the response is well-structured using HTML and do not include any code blocks or backticks.
 
 **Examples:**
 
-**Example 1: Shipping Cost Inquiry**
+Example 1: Shipping Cost Inquiry
 
 Context: Our online store offers shipping services from 12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng. The fixed shipping cost is 450 Rands for addresses within 50 km. For locations beyond 50 km, the cost is 15 Rands per additional kilometer.
 
 Question: How much would shipping cost to Cape Town, which is 750 km away?
 
 Answer:
-There is a fixed shipping cost of <b>450 Rands</b> for addresses within 50 km from <b>12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng</b>.
-For locations beyond 50 km, the cost is <b>15 Rands per additional kilometer</b>.
-Cape Town is <b>750 km</b> away, so the additional kilometers are <b>700 km</b> (750 km - 50 km).
-- <b>Additional Shipping Cost:</b> 700 km * 15 Rands = <b>10,500 Rands</b>
+There is a fixed shipping cost of <b>450 Rands</b> for addresses within 50 km from <b>12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng</b>.<br>
+For locations beyond 50 km, the cost is <b>15 Rands per additional kilometer</b>.<br>
+Cape Town is <b>750 km</b> away, so the additional kilometers are <b>700 km</b> (750 km - 50 km).<br>
+- <b>Additional Shipping Cost:</b> 700 km * 15 Rands = <b>10,500 Rands</b><br>
 - <b>Total Approximate Shipping Cost:</b> 450 Rands + 10,500 Rands = <b>10,950 Rands</b>
 
-**Example 2:**
+Example 2:
 
 <b>Address:</b> 12 Observatory Avenue, Observatory, Johannesburg, 2198 Gauteng<br>
 <b>Email:</b><br>
@@ -96,9 +94,9 @@ Cape Town is <b>750 km</b> away, so the additional kilometers are <b>700 km</b> 
 {conversation_history}
 
 **Question:** {question}
+
 Answer:
 """
-
 
 # Create the prompt template
 prompt = ChatPromptTemplate.from_template(template)
@@ -142,6 +140,8 @@ def chat():
 
         # Get the response from the chain
         answer = chain.run(prompt_inputs)
+        
+        answer = answer.replace('```html', '').replace('```', '').strip()
 
         # Limit conversation history to the last 10 interactions
         history_lines = conversation_history.split("\n")
