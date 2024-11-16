@@ -11,28 +11,17 @@
             background-color: #5D3FD3;
             color: white;
             border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        /* Chat Button Label */
-        #chat-label {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            font-size: 14px;
-            color: #5D3FD3;
             text-align: center;
-            font-weight: bold;
-            z-index: 1000;
         }
 
         /* Chat Window */
@@ -170,11 +159,6 @@
                 bottom: 20px;
             }
 
-            #chat-label {
-                bottom: 80px;
-                right: 5%;
-            }
-
             #chat-header, #chat-footer {
                 padding: 8px;
             }
@@ -192,8 +176,7 @@
 <body>
 
     <!-- Chat Button -->
-    <button id="chat-button">💬</button>
-    <div id="chat-label">Chat with us</div>
+    <button id="chat-button">Chat with us</button>
 
     <!-- Chat Window -->
     <div id="chat-window">
@@ -215,7 +198,6 @@
     <script>
         // Get elements
         const chatButton = document.getElementById('chat-button');
-        const chatLabel = document.getElementById('chat-label');
         const chatWindow = document.getElementById('chat-window');
         const closeButton = document.getElementById('close-button');
         const sendButton = document.getElementById('send-button');
