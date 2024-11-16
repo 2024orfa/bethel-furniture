@@ -38,20 +38,18 @@
         /* Chat Window */
         #chat-window {
             position: fixed;
-            bottom: 90px; /* Ensure the chat window starts from a safe distance above the chat button */
+            bottom: 90px;
             right: 20px;
             width: 350px;
-            max-height: calc(100vh - 100px); /* Prevent overflow by limiting height */
+            max-height: 600px;
             background-color: white;
             border: 1px solid #ccc;
             border-radius: 10px;
             display: none; /* Hidden by default */
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             flex-direction: column;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            overflow-y: auto
         }
 
         /* Chat Header */
@@ -64,8 +62,6 @@
             align-items: center;
             font-size: 16px;
             font-weight: bold;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
         }
 
         /* Close Button */
@@ -83,6 +79,9 @@
             padding: 10px;
             overflow-y: auto;
             background-color: #f1f1f1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         /* Chat Footer */
