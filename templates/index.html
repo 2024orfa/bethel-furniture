@@ -106,17 +106,6 @@
             cursor: pointer;
         }
 
-        /* Loading Indicator */
-        #loading-indicator {
-            display: none; /* Hidden by default */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 14px;
-            color: #555;
-        }
-
         /* Message Bubbles */
         .message {
             margin-bottom: 10px;
@@ -148,6 +137,32 @@
             background-color: #e5e5ea;
             color: black;
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            #chat-window {
+                width: 90%;
+                right: 5%;
+                bottom: 80px;
+            }
+
+            #chat-button {
+                right: 5%;
+                bottom: 20px;
+            }
+
+            #chat-header, #chat-footer {
+                padding: 8px;
+            }
+
+            #chat-input {
+                padding: 8px;
+            }
+
+            #send-button {
+                padding: 8px 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -158,7 +173,7 @@
     </button>
 
     <!-- Chat Window -->
-    <div id="chat-window" style="display: none;"> <!-- Ensures it's hidden -->
+    <div id="chat-window">
         <div id="chat-header">
             <span>Bethel Furniture AI Assistant</span>
             <button id="close-button">&times;</button>
@@ -170,8 +185,6 @@
             <input type="text" id="chat-input" placeholder="Type your message...">
             <button id="send-button">Send</button>
         </div>
-        <!-- Loading Indicator -->
-        <div id="loading-indicator">Loading...</div>
     </div>
 
     <script>
@@ -179,6 +192,9 @@
         const chatButton = document.getElementById('chat-button');
         const chatWindow = document.getElementById('chat-window');
         const closeButton = document.getElementById('close-button');
+        const sendButton = document.getElementById('send-button');
+        const chatInput = document.getElementById('chat-input');
+        const chatBody = document.getElementById('chat-body');
 
         // Show chat window when chat button is clicked
         chatButton.addEventListener('click', () => {
@@ -190,6 +206,56 @@
         closeButton.addEventListener('click', () => {
             chatWindow.style.display = 'none'; // Hides the chat window
             chatButton.style.display = 'flex'; // Optionally show the chat button again
+        });
+
+        // Function to append messages to the chat body
+        function appendMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+            const messageContent = document.createElement('p');
+            messageContent.innerHTML = message; // Allows HTML rendering for bot responses
+            messageDiv.appendChild(messageContent);
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight; // Scroll to the latest message
+        }
+
+        // Function to send the message to the Flask backend
+        async function sendMessage() {
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return; // Do nothing if input is empty
+
+            // Append the user's message to the chat
+            appendMessage(userMessage, 'user');
+            chatInput.value = ''; // Clear the input field
+
+            try {
+                // Send the user's message to the Flask backend
+                const response = await fetch('https://your-flask-app-url/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userMessage })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    appendMessage(data.response, 'bot'); // Append the bot's response to the chat
+                } else {
+                    appendMessage('Error: Unable to process your request. Please try again.', 'bot');
+                }
+            } catch (error) {
+                console.error('Error communicating with the backend:', error);
+                appendMessage('Error connecting to the server. Please try again later.', 'bot');
+            }
+        }
+
+        // Add event listeners for "Send" button and "Enter" key
+        sendButton.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
         });
     </script>
 </body>
