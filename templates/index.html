@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Bethel Furniture Customer Support AI Assistant</title>
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <style>
         /* Chat Button */
         #chat-button {
@@ -11,28 +13,18 @@
             background-color: #5D3FD3;
             color: white;
             border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        /* Chat Button Label */
-        #chat-label {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            font-size: 14px;
-            color: #5D3FD3;
             text-align: center;
-            font-weight: bold;
-            z-index: 1000;
+            gap: 10px; /* Adds space between text and icon */
         }
 
         /* Chat Window */
@@ -161,11 +153,12 @@
 <body>
 
     <!-- Chat Button -->
-    <button id="chat-button">💬</button>
-    <div id="chat-label">Chat with us</div>
+    <button id="chat-button">
+        Chat with us <i class="fas fa-comment-alt"></i>
+    </button>
 
     <!-- Chat Window -->
-    <div id="chat-window">
+    <div id="chat-window" style="display: none;"> <!-- Ensures it's hidden -->
         <div id="chat-header">
             <span>Bethel Furniture AI Assistant</span>
             <button id="close-button">&times;</button>
@@ -184,61 +177,19 @@
     <script>
         // Get elements
         const chatButton = document.getElementById('chat-button');
-        const chatLabel = document.getElementById('chat-label');
         const chatWindow = document.getElementById('chat-window');
         const closeButton = document.getElementById('close-button');
-        const sendButton = document.getElementById('send-button');
-        const chatInput = document.getElementById('chat-input');
-        const chatBody = document.getElementById('chat-body');
 
-        // Show chat window
+        // Show chat window when chat button is clicked
         chatButton.addEventListener('click', () => {
-            chatWindow.style.display = 'flex';
-            chatInput.focus();
+            chatWindow.style.display = 'flex'; // Makes chat window visible
+            chatButton.style.display = 'none'; // Optionally hide the chat button
         });
 
-        // Close chat window
+        // Hide chat window when close button is clicked
         closeButton.addEventListener('click', () => {
-            chatWindow.style.display = 'none';
-        });
-
-        // Append messages
-        function appendMessage(message, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
-            const messageContent = document.createElement('p');
-            messageContent.innerHTML = sender === 'bot' ? message : message; // Bot renders HTML
-            messageDiv.appendChild(messageContent);
-            chatBody.appendChild(messageDiv);
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-
-        // Send message to backend
-        async function sendMessage() {
-            const userMessage = chatInput.value.trim();
-            if (!userMessage) return;
-            appendMessage(userMessage, 'user');
-            chatInput.value = '';
-            try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: userMessage })
-                });
-                const data = await response.json();
-                appendMessage(data.response, 'bot');
-            } catch (error) {
-                appendMessage('Error connecting to the server.', 'bot');
-            }
-        }
-
-        // Event Listeners
-        sendButton.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendMessage();
-            }
+            chatWindow.style.display = 'none'; // Hides the chat window
+            chatButton.style.display = 'flex'; // Optionally show the chat button again
         });
     </script>
 </body>
