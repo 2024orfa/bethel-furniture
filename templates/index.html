@@ -2,8 +2,6 @@
 <html>
 <head>
     <title>Bethel Furniture Customer Support AI Assistant</title>
-    <!-- Font Awesome for Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <style>
         /* Chat Button */
         #chat-button {
@@ -13,18 +11,28 @@
             background-color: #5D3FD3;
             color: white;
             border: none;
-            border-radius: 30px;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        /* Chat Button Label */
+        #chat-label {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            font-size: 14px;
+            color: #5D3FD3;
             text-align: center;
-            gap: 10px; /* Adds space between text and icon */
+            font-weight: bold;
+            z-index: 1000;
         }
 
         /* Chat Window */
@@ -148,43 +156,16 @@
             background-color: #e5e5ea;
             color: black;
         }
-
-        /* Responsive adjustments */
-        @media (max-width: 600px) {
-            #chat-window {
-                width: 90%;
-                right: 5%;
-                bottom: 80px;
-            }
-
-            #chat-button {
-                right: 5%;
-                bottom: 20px;
-            }
-
-            #chat-header, #chat-footer {
-                padding: 8px;
-            }
-
-            #chat-input {
-                padding: 8px;
-            }
-
-            #send-button {
-                padding: 8px 10px;
-            }
-        }
     </style>
 </head>
 <body>
 
     <!-- Chat Button -->
-    <button id="chat-button">
-        Chat with us <i class="fas fa-comment-alt"></i>
-    </button>
+    <button id="chat-button">💬</button>
+    <div id="chat-label">Chat with us</div>
 
     <!-- Chat Window -->
-    <div id="chat-window" style="display: none;"> <!-- Ensures it's hidden -->
+    <div id="chat-window">
         <div id="chat-header">
             <span>Bethel Furniture AI Assistant</span>
             <button id="close-button">&times;</button>
@@ -196,52 +177,53 @@
             <input type="text" id="chat-input" placeholder="Type your message...">
             <button id="send-button">Send</button>
         </div>
+        <!-- Loading Indicator -->
+        <div id="loading-indicator">Loading...</div>
     </div>
 
     <script>
         // Get elements
         const chatButton = document.getElementById('chat-button');
+        const chatLabel = document.getElementById('chat-label');
         const chatWindow = document.getElementById('chat-window');
         const closeButton = document.getElementById('close-button');
-        const chatInput = document.getElementById('chat-input');
         const sendButton = document.getElementById('send-button');
+        const chatInput = document.getElementById('chat-input');
         const chatBody = document.getElementById('chat-body');
 
-        // Show chat window when chat button is clicked
+        // Show chat window
         chatButton.addEventListener('click', () => {
-            chatWindow.style.display = 'flex'; // Makes chat window visible
-            chatButton.style.display = 'none'; // Optionally hide the chat button
+            chatWindow.style.display = 'flex';
+            chatInput.focus();
         });
 
-        // Hide chat window when close button is clicked
+        // Close chat window
         closeButton.addEventListener('click', () => {
-            chatWindow.style.display = 'none'; // Hides the chat window
-            chatButton.style.display = 'flex'; // Optionally show the chat button again
+            chatWindow.style.display = 'none';
         });
 
-        // Function to append messages to the chat body
+        // Append messages
         function appendMessage(message, sender) {
             const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            messageDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
             const messageContent = document.createElement('p');
-            messageContent.textContent = message;
+            messageContent.innerHTML = sender === 'bot' ? message : message; // Bot renders HTML
             messageDiv.appendChild(messageContent);
             chatBody.appendChild(messageDiv);
             chatBody.scrollTop = chatBody.scrollHeight;
         }
 
-        // Function to send the message
+        // Send message to backend
         async function sendMessage() {
-            const message = chatInput.value.trim();
-            if (message === '') return; // Ignore empty input
-            appendMessage(message, 'user');
-            chatInput.value = ''; // Clear the input
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+            appendMessage(userMessage, 'user');
+            chatInput.value = '';
             try {
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify({ message: userMessage })
                 });
                 const data = await response.json();
                 appendMessage(data.response, 'bot');
@@ -250,7 +232,7 @@
             }
         }
 
-        // Add event listeners for "Send" button and "Enter" key
+        // Event Listeners
         sendButton.addEventListener('click', sendMessage);
         chatInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
