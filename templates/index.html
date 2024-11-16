@@ -16,7 +16,7 @@
             height: 60px;
             font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -46,12 +46,10 @@
             border: 1px solid #ccc;
             border-radius: 10px;
             display: none; /* Hidden by default */
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             flex-direction: column;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
         }
 
         /* Chat Header */
@@ -191,10 +189,14 @@
         const chatInput = document.getElementById('chat-input');
         const chatBody = document.getElementById('chat-body');
 
-        // Show chat window
+        // Toggle chat window visibility
         chatButton.addEventListener('click', () => {
-            chatWindow.style.display = 'flex';
-            chatInput.focus();
+            if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
+                chatWindow.style.display = 'flex'; // Show the chat window
+                chatInput.focus();
+            } else {
+                chatWindow.style.display = 'none'; // Hide the chat window
+            }
         });
 
         // Close chat window
@@ -207,7 +209,7 @@
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
             const messageContent = document.createElement('p');
-            messageContent.innerHTML = sender === 'bot' ? message : message; // Bot renders HTML
+            messageContent.innerHTML = message;
             messageDiv.appendChild(messageContent);
             chatBody.appendChild(messageDiv);
             chatBody.scrollTop = chatBody.scrollHeight;
