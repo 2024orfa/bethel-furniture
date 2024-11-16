@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Bethel Furniture Customer Support AI Assistant</title>
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <style>
         /* Chat Button */
         #chat-button {
@@ -22,6 +24,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+            gap: 10px; /* Adds space between text and icon */
         }
 
         /* Chat Window */
@@ -176,7 +179,9 @@
 <body>
 
     <!-- Chat Button -->
-    <button id="chat-button">Chat with us</button>
+    <button id="chat-button">
+        Chat with us <i class="fas fa-comment-alt"></i>
+    </button>
 
     <!-- Chat Window -->
     <div id="chat-window" style="display: none;"> <!-- Ensures it's hidden -->
