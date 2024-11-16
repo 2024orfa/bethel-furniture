@@ -203,6 +203,9 @@
         const chatButton = document.getElementById('chat-button');
         const chatWindow = document.getElementById('chat-window');
         const closeButton = document.getElementById('close-button');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const chatBody = document.getElementById('chat-body');
 
         // Show chat window when chat button is clicked
         chatButton.addEventListener('click', () => {
@@ -214,6 +217,46 @@
         closeButton.addEventListener('click', () => {
             chatWindow.style.display = 'none'; // Hides the chat window
             chatButton.style.display = 'flex'; // Optionally show the chat button again
+        });
+
+        // Function to append messages to the chat body
+        function appendMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+            const messageContent = document.createElement('p');
+            messageContent.textContent = message;
+            messageDiv.appendChild(messageContent);
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        // Function to send the message
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message === '') return; // Ignore empty input
+            appendMessage(message, 'user');
+            chatInput.value = ''; // Clear the input
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const data = await response.json();
+                appendMessage(data.response, 'bot');
+            } catch (error) {
+                appendMessage('Error connecting to the server.', 'bot');
+            }
+        }
+
+        // Add event listeners for "Send" button and "Enter" key
+        sendButton.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
         });
     </script>
 </body>
