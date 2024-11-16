@@ -18,6 +18,21 @@
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Chat Button Label */
+        #chat-label {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            font-size: 14px;
+            color: #5D3FD3;
+            text-align: center;
+            font-weight: bold;
+            z-index: 1000;
         }
 
         /* Chat Window */
@@ -155,6 +170,11 @@
                 bottom: 20px;
             }
 
+            #chat-label {
+                bottom: 80px;
+                right: 5%;
+            }
+
             #chat-header, #chat-footer {
                 padding: 8px;
             }
@@ -173,6 +193,7 @@
 
     <!-- Chat Button -->
     <button id="chat-button">💬</button>
+    <div id="chat-label">Chat with us</div>
 
     <!-- Chat Window -->
     <div id="chat-window">
@@ -192,11 +213,9 @@
     </div>
 
     <script>
-        // Initialize conversation history as a string
-        let conversationHistory = "";
-
         // Get elements
         const chatButton = document.getElementById('chat-button');
+        const chatLabel = document.getElementById('chat-label');
         const chatWindow = document.getElementById('chat-window');
         const closeButton = document.getElementById('close-button');
         const sendButton = document.getElementById('send-button');
@@ -204,99 +223,15 @@
         const chatBody = document.getElementById('chat-body');
         const loadingIndicator = document.getElementById('loading-indicator');
 
-        // Toggle chat window visibility
+        // Show chat window on chat button click
         chatButton.addEventListener('click', () => {
             chatWindow.style.display = 'flex';
             chatInput.focus();
         });
 
+        // Hide chat window on close button click
         closeButton.addEventListener('click', () => {
             chatWindow.style.display = 'none';
-        });
-
-        // Function to append messages to the chat body
-        function appendMessage(message, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            if (sender === 'user') {
-                messageDiv.classList.add('user-message');
-            } else {
-                messageDiv.classList.add('bot-message');
-            }
-
-            const messageContent = document.createElement('p');
-            // Allow HTML content to be rendered
-            messageContent.innerHTML = message;
-
-            messageDiv.appendChild(messageContent);
-            chatBody.appendChild(messageDiv);
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-
-        // Function to send message to the server
-        async function sendMessage() {
-            const message = chatInput.value.trim();
-            if (message === '') return; // Do nothing if input is empty
-
-            // Append user message to chat
-            appendMessage(message, 'user');
-
-            // Add user message to conversation history
-            conversationHistory += `User: ${message}\n`;
-
-            // Clear input and disable input fields
-            chatInput.value = '';
-            chatInput.disabled = true;
-            sendButton.disabled = true;
-
-            // Show loading indicator
-            loadingIndicator.style.display = 'block';
-
-            try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        conversation_history: conversationHistory
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.error) {
-                    appendMessage(`Error: ${data.error}`, 'bot');
-                } else {
-                    // Update conversation history with assistant response
-                    const botMessage = data.response;
-                    conversationHistory += `Assistant: ${botMessage}\n`;
-
-                    // Append bot response to chat
-                    appendMessage(botMessage, 'bot');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                appendMessage('Sorry, something went wrong.', 'bot');
-            } finally {
-                // Re-enable input fields and hide loading indicator
-                chatInput.disabled = false;
-                sendButton.disabled = false;
-                loadingIndicator.style.display = 'none';
-                chatInput.focus();
-            }
-        }
-
-        // Send message on button click
-        sendButton.addEventListener('click', sendMessage);
-
-        // Send message on Enter key press
-        chatInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendMessage();
-            }
         });
     </script>
 </body>
