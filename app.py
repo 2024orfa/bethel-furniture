@@ -102,7 +102,7 @@ Answer:
 prompt = ChatPromptTemplate.from_template(template)
 
 # Initialize the OpenAI model
-model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4o")
+model = ChatOpenAI(openai_api_key=openai_api_key, model="gpt-4o-mini")
 
 # Create the LLMChain
 chain = LLMChain(llm=model, prompt=prompt)
