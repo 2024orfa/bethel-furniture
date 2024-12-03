@@ -92,6 +92,16 @@
             align-items: center;
             background-color: #f9f9f9;
         }
+        /* Chat Trademark */
+        #chat-trademark {
+            text-align: center;       /* Centers the text horizontally */
+            padding: 5px;             /* Adds space around the text */
+            font-size: 10px;          /* Makes the text smaller */
+            color: #888;              /* Subtle gray color for the text */
+            background-color: #f9f9f9; /* Matches the footer background */
+            border-top: 1px solid #ccc; /* Adds a top border for separation */
+            line-height: 1.2;         /* Adjusts line height for better readability */
+        }
 
         /* Chat Input */
         #chat-input {
@@ -174,6 +184,10 @@
         <div id="chat-footer">
             <input type="text" id="chat-input" placeholder="Type your message...">
             <button id="send-button">Send</button>
+        </div>
+        <!-- Add this trademark section -->
+        <div id="chat-trademark">
+            <p>Powered by <a href="https://www.orfa.ai" target="_blank" style="color: #888; text-decoration: none;">OrfaAI</a></p>
         </div>
         <!-- Loading Indicator -->
         <div id="loading-indicator">Loading...</div>
