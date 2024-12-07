@@ -169,7 +169,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.chains import LLMChain
 from pinecone import Pinecone as PineconeClient
 from flask_cors import CORS
-
+import os
 app = Flask(__name__)
 CORS(app)
 
@@ -359,6 +359,8 @@ def whatsapp_webhook():
                         print(f"Error processing message: {e}")
 
         return 'EVENT_RECEIVED', 200
+
+print(f"Current Token: {os.getenv('WHATSAPP_TOKEN')}")
 
 
 def send_whatsapp_message(recipient_id, message):
