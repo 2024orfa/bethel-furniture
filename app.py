@@ -317,50 +317,58 @@ def chat():
 
     return jsonify({'response': answer, 'conversation_history': updated_conversation_history})
 
-
-@app.route('/webhook', methods=['GET', 'POST'])
+@app.route('/webhook', methods=['POST'])
 def whatsapp_webhook():
-    if request.method == 'GET':
-        # WhatsApp's webhook verification
-        verify_token = request.args.get('hub.verify_token')
-        challenge = request.args.get('hub.challenge')
-        if verify_token == os.getenv("VERIFY_TOKEN"):
-            return challenge, 200
-        return 'Invalid verification token', 403
+    data = request.get_json()
+    print(f"Incoming Webhook Data: {data}")
 
-    elif request.method == 'POST':
-        # Handle incoming WhatsApp messages
-        data = request.get_json()
-        if "messages" in data["entry"][0]["changes"][0]["value"]:
-            messages = data["entry"][0]["changes"][0]["value"]["messages"]
-            for message in messages:
-                if "text" in message:
-                    sender_id = message["from"]
-                    user_message = message["text"]["body"]
+    if "messages" in data["entry"][0]["changes"][0]["value"]:
+        messages = data["entry"][0]["changes"][0]["value"]["messages"]
+        for message in messages:
+            sender_id = message["from"]
+            user_message = message["text"]["body"]
 
-                    # Retrieve context and generate response
-                    try:
-                        docs = retriever.get_relevant_documents(user_message)
-                        context = "\n".join([doc.page_content for doc in docs])
+            try:
+                # Retrieve relevant documents
+                docs = retriever.get_relevant_documents(user_message)
+                context = "\n".join([doc.page_content for doc in docs])
 
-                        prompt_inputs = {
-                            "context": context,
-                            "conversation_history": "",
-                            "question": user_message
-                        }
+                # Prepare inputs for chatbot logic
+                prompt_inputs = {
+                    "context": context,
+                    "conversation_history": "",
+                    "question": user_message
+                }
 
-                        # Get chatbot response
-                        bot_response = chain.run(prompt_inputs)
+                # Get chatbot response
+                bot_response = chain.run(prompt_inputs)
 
-                        # Send response back to WhatsApp user
-                        send_whatsapp_message(sender_id, bot_response)
+                # Convert HTML to WhatsApp Markdown format
+                formatted_response = convert_html_to_markdown(bot_response)
 
-                    except Exception as e:
-                        print(f"Error processing message: {e}")
+                # Send the response to the WhatsApp user
+                send_whatsapp_message(sender_id, formatted_response)
 
-        return 'EVENT_RECEIVED', 200
+            except Exception as e:
+                print(f"Error processing message: {e}")
 
-print(f"Current Token: {os.getenv('WHATSAPP_TOKEN')}")
+    return 'EVENT_RECEIVED', 200
+
+
+def convert_html_to_markdown(html_response):
+    """
+    Converts HTML-formatted response to WhatsApp-compatible Markdown.
+    """
+    import re
+    # Convert <b>...</b> to *...* for bold
+    response = re.sub(r"<b>(.*?)</b>", r"*\1*", html_response)
+    # Replace <br> with newline
+    response = response.replace("<br>", "\n")
+    # Replace <ul> and <li> with bullet points
+    response = re.sub(r"<ul>\s*(<li>.*?</li>)\s*</ul>", lambda m: re.sub(r"<li>(.*?)</li>", r"- \1", m.group(1)), response)
+    # Remove any remaining HTML tags
+    response = re.sub(r"<.*?>", "", response)
+    return response.strip()
 
 
 def send_whatsapp_message(recipient_id, message):
@@ -381,3 +389,17 @@ def send_whatsapp_message(recipient_id, message):
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code != 200:
         print(f"Failed to send message: {response.text}")
+
+
+# Example conversion function test
+if __name__ == "__main__":
+    test_html = """
+    <b>Shipping Costs:</b><br>
+    Delivery fees depend on the size of your order and the delivery destination.<br>
+    Shipping from our address at <b>12 Observatory Avenue</b> has the following structure:<br>
+    <ul>
+        <li><b>Fixed Shipping Cost:</b> 450 Rands for addresses within 50 km.</li>
+        <li>For locations beyond 50 km: An additional cost of 15 Rands per additional kilometer.</li>
+    </ul>
+    """
+    print(convert_html_to_markdown(test_html))
