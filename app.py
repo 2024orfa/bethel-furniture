@@ -327,54 +327,51 @@ def whatsapp_webhook():
         for message in messages:
             sender_id = message["from"]
             user_message = message["text"]["body"]
+            print(f"Received message from {sender_id}: {user_message}")
 
-            try:
-                # Retrieve relevant documents
-                docs = retriever.get_relevant_documents(user_message)
-                context = "\n".join([doc.page_content for doc in docs])
+            # Fetch contact info based on phone number
+            contact_info = get_contact_info(sender_id)
+            if contact_info and "contacts" in contact_info:
+                user_name = contact_info["contacts"][0].get("profile", {}).get("name", "there")
+                greeting = f"Hello {user_name}, how can I assist you today?"
+            else:
+                # Default greeting if no name is found
+                greeting = "Hello, how can I assist you today?"
 
-                # Prepare inputs for chatbot logic
-                prompt_inputs = {
-                    "context": context,
-                    "conversation_history": "",
-                    "question": user_message
-                }
-
-                # Get chatbot response
-                bot_response = chain.run(prompt_inputs)
-
-                # Convert HTML to WhatsApp Markdown format
-                formatted_response = convert_html_to_markdown(bot_response)
-
-                # Send the response to the WhatsApp user
-                send_whatsapp_message(sender_id, formatted_response)
-
-            except Exception as e:
-                print(f"Error processing message: {e}")
+            # Send the greeting message to the user
+            send_whatsapp_message(sender_id, greeting)
 
     return 'EVENT_RECEIVED', 200
 
 
-def convert_html_to_markdown(html_response):
-    """
-    Converts HTML-formatted response to WhatsApp-compatible Markdown.
-    """
-    import re
-    # Convert <b>...</b> to *...* for bold
-    response = re.sub(r"<b>(.*?)</b>", r"*\1*", html_response)
-    # Replace <br> with newline
-    response = response.replace("<br>", "\n")
-    # Replace <ul> and <li> with bullet points
-    response = re.sub(r"<ul>\s*(<li>.*?</li>)\s*</ul>", lambda m: re.sub(r"<li>(.*?)</li>", r"- \1", m.group(1)), response)
-    # Remove any remaining HTML tags
-    response = re.sub(r"<.*?>", "", response)
-    return response.strip()
+# Function to get contact details using the WhatsApp API
+def get_contact_info(phone_number):
+    url = f"https://graph.facebook.com/v17.0/{os.getenv('PHONE_NUMBER_ID')}/contacts"
+    headers = {
+        "Authorization": f"Bearer {os.getenv('WHATSAPP_TOKEN')}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "contacts": [
+            {
+                "input": phone_number,
+                "wa_id": phone_number
+            }
+        ]
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    
+    if response.status_code == 200:
+        contact_info = response.json()
+        return contact_info
+    else:
+        print(f"Failed to fetch contact info: {response.status_code}, {response.text}")
+        return None
 
 
+# Function to send a WhatsApp message
 def send_whatsapp_message(recipient_id, message):
-    """
-    Sends a message to a WhatsApp user using the WhatsApp Cloud API.
-    """
     url = f"https://graph.facebook.com/v17.0/{os.getenv('PHONE_NUMBER_ID')}/messages"
     headers = {
         "Authorization": f"Bearer {os.getenv('WHATSAPP_TOKEN')}",
@@ -386,20 +383,99 @@ def send_whatsapp_message(recipient_id, message):
         "type": "text",
         "text": {"body": message}
     }
+    
     response = requests.post(url, headers=headers, json=payload)
+    
     if response.status_code != 200:
         print(f"Failed to send message: {response.text}")
 
 
-# Example conversion function test
-if __name__ == "__main__":
-    test_html = """
-    <b>Shipping Costs:</b><br>
-    Delivery fees depend on the size of your order and the delivery destination.<br>
-    Shipping from our address at <b>12 Observatory Avenue</b> has the following structure:<br>
-    <ul>
-        <li><b>Fixed Shipping Cost:</b> 450 Rands for addresses within 50 km.</li>
-        <li>For locations beyond 50 km: An additional cost of 15 Rands per additional kilometer.</li>
-    </ul>
-    """
-    print(convert_html_to_markdown(test_html))
+# Start the Flask application
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
+# @app.route('/webhook', methods=['POST'])
+# def whatsapp_webhook():
+#     data = request.get_json()
+#     print(f"Incoming Webhook Data: {data}")
+
+#     if "messages" in data["entry"][0]["changes"][0]["value"]:
+#         messages = data["entry"][0]["changes"][0]["value"]["messages"]
+#         for message in messages:
+#             sender_id = message["from"]
+#             user_message = message["text"]["body"]
+
+#             try:
+#                 # Retrieve relevant documents
+#                 docs = retriever.get_relevant_documents(user_message)
+#                 context = "\n".join([doc.page_content for doc in docs])
+
+#                 # Prepare inputs for chatbot logic
+#                 prompt_inputs = {
+#                     "context": context,
+#                     "conversation_history": "",
+#                     "question": user_message
+#                 }
+
+#                 # Get chatbot response
+#                 bot_response = chain.run(prompt_inputs)
+
+#                 # Convert HTML to WhatsApp Markdown format
+#                 formatted_response = convert_html_to_markdown(bot_response)
+
+#                 # Send the response to the WhatsApp user
+#                 send_whatsapp_message(sender_id, formatted_response)
+
+#             except Exception as e:
+#                 print(f"Error processing message: {e}")
+
+#     return 'EVENT_RECEIVED', 200
+
+
+# def convert_html_to_markdown(html_response):
+#     """
+#     Converts HTML-formatted response to WhatsApp-compatible Markdown.
+#     """
+#     import re
+#     # Convert <b>...</b> to *...* for bold
+#     response = re.sub(r"<b>(.*?)</b>", r"*\1*", html_response)
+#     # Replace <br> with newline
+#     response = response.replace("<br>", "\n")
+#     # Replace <ul> and <li> with bullet points
+#     response = re.sub(r"<ul>\s*(<li>.*?</li>)\s*</ul>", lambda m: re.sub(r"<li>(.*?)</li>", r"- \1", m.group(1)), response)
+#     # Remove any remaining HTML tags
+#     response = re.sub(r"<.*?>", "", response)
+#     return response.strip()
+
+
+# def send_whatsapp_message(recipient_id, message):
+#     """
+#     Sends a message to a WhatsApp user using the WhatsApp Cloud API.
+#     """
+#     url = f"https://graph.facebook.com/v17.0/{os.getenv('PHONE_NUMBER_ID')}/messages"
+#     headers = {
+#         "Authorization": f"Bearer {os.getenv('WHATSAPP_TOKEN')}",
+#         "Content-Type": "application/json"
+#     }
+#     payload = {
+#         "messaging_product": "whatsapp",
+#         "to": recipient_id,
+#         "type": "text",
+#         "text": {"body": message}
+#     }
+#     response = requests.post(url, headers=headers, json=payload)
+#     if response.status_code != 200:
+#         print(f"Failed to send message: {response.text}")
+
+
+# # Example conversion function test
+# if __name__ == "__main__":
+#     test_html = """
+#     <b>Shipping Costs:</b><br>
+#     Delivery fees depend on the size of your order and the delivery destination.<br>
+#     Shipping from our address at <b>12 Observatory Avenue</b> has the following structure:<br>
+#     <ul>
+#         <li><b>Fixed Shipping Cost:</b> 450 Rands for addresses within 50 km.</li>
+#         <li>For locations beyond 50 km: An additional cost of 15 Rands per additional kilometer.</li>
+#     </ul>
+#     """
+#     print(convert_html_to_markdown(test_html))
