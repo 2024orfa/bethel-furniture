@@ -11,8 +11,8 @@ from flask_cors import CORS
 import os
 import re
 import logging
-from twilio.twiml.messaging_response import MessagingResponse
-from twilio.rest import Client
+# from twilio.twiml.messaging_response import MessagingResponse
+# from twilio.rest import Client
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 CORS(app)
@@ -163,39 +163,39 @@ def chat():
 
     return jsonify({'response': answer, 'conversation_history': updated_conversation_history})
 
-@app.route('/webhook', methods=['POST'])
-def whatsapp_webhook():
-    print("Incoming request data:", request.form)  # Log the request data
-    data = request.form  # Twilio sends data via form-urlencoded
+#@app.route('/webhook', methods=['POST'])
+# def whatsapp_webhook():
+#     print("Incoming request data:", request.form)  # Log the request data
+#     data = request.form  # Twilio sends data via form-urlencoded
 
-    sender_id = data.get('From')
-    user_message = data.get('Body')
+#     sender_id = data.get('From')
+#     user_message = data.get('Body')
 
-    print(f"Incoming WhatsApp message from {sender_id}: {user_message}")
+#     print(f"Incoming WhatsApp message from {sender_id}: {user_message}")
 
-    try:
-        # Retrieve relevant documents based on user message
-        docs = retriever.get_relevant_documents(user_message)
-        context = "\n".join([doc.page_content for doc in docs])
+#     try:
+#         # Retrieve relevant documents based on user message
+#         docs = retriever.get_relevant_documents(user_message)
+#         context = "\n".join([doc.page_content for doc in docs])
 
-        # Prepare inputs for chatbot logic
-        prompt_inputs = {
-            "context": context,
-            "conversation_history": "",
-            "question": user_message
-        }
+#         # Prepare inputs for chatbot logic
+#         prompt_inputs = {
+#             "context": context,
+#             "conversation_history": "",
+#             "question": user_message
+#         }
 
-        # Get chatbot response
-        bot_response = chain.run(prompt_inputs)
-        formatted_response = convert_html_to_markdown(bot_response)
+#         # Get chatbot response
+#         bot_response = chain.run(prompt_inputs)
+#         formatted_response = convert_html_to_markdown(bot_response)
 
-        # Send response via Twilio
-        send_whatsapp_message(sender_id, formatted_response)
+#         # Send response via Twilio
+#         send_whatsapp_message(sender_id, formatted_response)
 
-    except Exception as e:
-        print(f"Error processing message: {e}")
+#     except Exception as e:
+#         print(f"Error processing message: {e}")
 
-    return 'EVENT_RECEIVED', 200
+#     return 'EVENT_RECEIVED', 200
 
 def convert_html_to_markdown(html_response):
     """
@@ -212,26 +212,26 @@ def convert_html_to_markdown(html_response):
     response = re.sub(r"<.*?>", "", response)
     return response.strip()
 
-def send_whatsapp_message(recipient_id, message):
-    """
-    Sends a WhatsApp message using Twilio API, ensuring proper XML format.
-    """
-    client = Client(twilio_account_sid, twilio_auth_token)
+# def send_whatsapp_message(recipient_id, message):
+#     """
+#     Sends a WhatsApp message using Twilio API, ensuring proper XML format.
+#     """
+#     client = Client(twilio_account_sid, twilio_auth_token)
     
-    try:
-        # Create Twilio MessagingResponse object
-        response = MessagingResponse()
-        response.message(message)  # Add the message to the response
+#     try:
+#         # Create Twilio MessagingResponse object
+#         response = MessagingResponse()
+#         response.message(message)  # Add the message to the response
 
-        # Send response via Twilio API
-        message = client.messages.create(
-            from_=twilio_whatsapp_number,
-            to=recipient_id,
-            body=str(response)  # Convert the MessagingResponse to string (XML format)
-        )
-        print(f"Message sent to {recipient_id} with SID {message.sid}")
-    except Exception as e:
-        print(f"Failed to send message: {e}")
+#         # Send response via Twilio API
+#         message = client.messages.create(
+#             from_=twilio_whatsapp_number,
+#             to=recipient_id,
+#             body=str(response)  # Convert the MessagingResponse to string (XML format)
+#         )
+#         print(f"Message sent to {recipient_id} with SID {message.sid}")
+#     except Exception as e:
+#         print(f"Failed to send message: {e}")
 
 if __name__ == "__main__":
     app.run(debug=True) 
